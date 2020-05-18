@@ -1,3 +1,4 @@
+from tensorflow import keras
 from tensorflow.keras import layers
 
 img_height = 1164
@@ -13,7 +14,7 @@ img_width = 874
  6 -         - signs and traffic lights (deprecated, now undrivable)
  7 - #cc00ff - my car (and anything inside it, including wires, mounts, etc...)
 """
-num_classes = 8
+num_classes = 6
 
 kernel_size = (3, 3)
 
@@ -45,3 +46,25 @@ for filter in [64, 128, 256]:
   decoder:
   upsample back to full scale image size
 """ 
+for filter in [64, 128, 256]:
+  x = layers.Activation('relu')(x)
+  x = layers.Conv2DTranspose(filters=filter, kernel_size=kernel_size, padding='same')(x)
+  x = layers.BatchNormalization()(x)
+  
+  x = layers.Activation('relu')(x)
+  x = layers.Conv2DTranspose(filters=filter, kernel_size=kernel_size, padding='same')(x)
+  x = layers.BatchNormalization()(x)
+  
+  x = layers.UpSampling2D(2)(x)
+  
+# output segmented image
+output = layers.Conv2D(num_classes, kernel_size=kernel_size, activation='softmax', padding='same')(x)
+
+# define da model
+model = keras.Model(input, output)
+
+# clear ram
+keras.backend.clear_session()
+
+# build da model
+model.summary()
