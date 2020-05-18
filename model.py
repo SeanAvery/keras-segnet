@@ -23,3 +23,25 @@ input = layers.Input(shape=(img_height, img_width, 3))
 x = layers.Conv2D(32, 3, strides=2, padding='same')(input)
 x = layers.BatchNormalization()(x)
 x = layers.Activation('relu')(x)
+
+residual = x
+
+"""
+  encoder:
+  downsample input rgb image
+"""
+for filter in [64, 128, 256]:
+  x = layers.Activation('relu')(x)
+  x = layers.SeparableConv2D(filters=filter, kernel_size=kernel_size, padding='same')(x)
+  x = layers.BatchNormalization()(x)
+  
+  x = layers.Activation('relu')(x)
+  x = layers.SeparableConv2D(filters=filter, kernel_size=kernel_size, padding='same')(x)
+  x = layers.BatchNormalization()(x)
+  
+  x = layers.MaxPooling2D(3, strides=2, padding='same')(x)
+
+"""
+  decoder:
+  upsample back to full scale image size
+""" 
