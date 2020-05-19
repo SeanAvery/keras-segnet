@@ -55,7 +55,7 @@ def build_model():
     upsample back to full scale image size
   """ 
   previous_block = x  # Set aside residual
-  for filter in [64, 128, 256]:
+  for filter in [256, 128, 64, 32]:
     x = layers.Activation('relu')(x)
     x = layers.Conv2DTranspose(filters=filter, kernel_size=kernel_size, padding='same')(x)
     x = layers.BatchNormalization()(x)
