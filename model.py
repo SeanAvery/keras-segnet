@@ -26,7 +26,7 @@ def build_model():
   x = layers.BatchNormalization()(x)
   x = layers.Activation('relu')(x)
 
-  residual = x
+  previous_block = x
 
   """
     encoder:
@@ -43,10 +43,18 @@ def build_model():
     
     x = layers.MaxPooling2D(3, strides=2, padding='same')(x)
 
+    # Project residual
+    residual = layers.Conv2D(filter, 1, strides=2, padding="same")(
+        previous_block
+    )
+    x = layers.add([x, residual])  # Add back residual
+    previous_block = x  # Set aside next residual
+
   """
     decoder:
     upsample back to full scale image size
   """ 
+  previous_block = x  # Set aside residual
   for filter in [64, 128, 256]:
     x = layers.Activation('relu')(x)
     x = layers.Conv2DTranspose(filters=filter, kernel_size=kernel_size, padding='same')(x)
@@ -58,6 +66,11 @@ def build_model():
     
     x = layers.UpSampling2D(2)(x)
     
+    residual = layers.UpSampling2D(2)(previous_block)
+    residual = layers.Conv2D(filter, 1, padding="same")(residual)
+    x = layers.add([x, residual])  # Add back residual
+    previous_block = x  # Set aside next residual
+
   # output segmented image
   output = layers.Conv2D(num_classes, kernel_size=kernel_size, activation='softmax', padding='same')(x)
 
